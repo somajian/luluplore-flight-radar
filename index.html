@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>機票價格雷達｜Luluplore</title>
+<meta name="description" content="用 Luluplore 累積的歷史查票資料，幫你快速判斷這個機票價格算不算便宜。">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,500;0,700;0,800;0,900&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap" id="pageTop">
+
+  <header class="board">
+    <div class="made-by">MADE BY LULUPLORE</div>
+    <div class="eyebrow"><span class="dot"></span>LULUPLORE FARE-CHECK DATABASE</div>
+    <h1>機票價格雷達</h1>
+    <p class="lede">用 Luluplore 累積的歷史查票資料，幫你快速判斷「這個價格算不算便宜」。</p>
+    <div class="stat-row" id="statRow"></div>
+  </header>
+
+  <section id="radar">
+    <div class="section-head">
+      <h2>各城市查票雷達</h2>
+      <span class="tag">Sorted by sample size</span>
+    </div>
+    <p class="section-note">點選國家 → 城市，查看 <b style="color:var(--ink-2);">✈️ 傳統航空</b>和 <b style="color:var(--ink-2);">🎫 廉價航空</b>目前查到的最低價與歷史行情。<br>有多個出發地的城市，先選出發地再看價格。<br>點卡片可直接帶入下方比價工具。</p>
+
+    <div id="countryTiles" class="country-tile-grid"></div>
+
+    <div id="countryDetail" style="display:none;">
+      <button type="button" class="back-btn" id="backToCountries">‹ 返回國家列表</button>
+      <div id="countryDetailBody"></div>
+    </div>
+  </section>
+
+  <section id="comparator-section">
+    <div class="section-head">
+      <h2>這張票算便宜嗎？</h2>
+    </div>
+    <ol class="howto-list">
+      <li>選擇目的地</li>
+      <li>輸入你看到的機票價格</li>
+      <li>可選擇出發地、航空公司類型、出發月份等條件</li>
+      <li>按「查一下」，看這個價格在歷史查票資料中的位置</li>
+    </ol>
+    <div class="comparator">
+      <div class="comp-form">
+        <div class="field grow">
+          <label for="destSelect">目的地</label>
+          <select id="destSelect"></select>
+        </div>
+        <div class="field">
+          <label for="priceInput">你查到的票價(TWD)</label>
+          <input type="number" id="priceInput" min="0" step="1" placeholder="例如 8500">
+        </div>
+        <button class="check-btn" id="checkBtn" type="button">查一下</button>
+      </div>
+      <div class="comp-form" style="margin-top:12px;">
+        <div class="field grow">
+          <label>要跟哪種航空的紀錄比？</label>
+          <div class="segmented" id="categoryToggle" role="group" aria-label="航空公司類型">
+            <button type="button" data-cat="all" class="active">不分類型</button>
+            <button type="button" data-cat="legacy">✈️ 傳統航空</button>
+            <button type="button" data-cat="lcc">🎫 廉價航空</button>
+          </div>
+        </div>
+        <div class="field grow">
+          <label>要跟哪個出發地比？</label>
+          <div class="segmented" id="originToggle" role="group" aria-label="出發地">
+            <button type="button" data-origin="all" class="active">不分出發地</button>
+            <button type="button" data-origin="台北">台北</button>
+            <button type="button" data-origin="台中">台中</button>
+            <button type="button" data-origin="高雄">高雄</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="monthSelect">要跟哪個月份比？</label>
+          <select id="monthSelect">
+            <option value="all">不限月份</option>
+            <option value="01">1月</option>
+            <option value="02">2月</option>
+            <option value="03">3月</option>
+            <option value="04">4月</option>
+            <option value="05">5月</option>
+            <option value="06">6月</option>
+            <option value="07">7月</option>
+            <option value="08">8月</option>
+            <option value="09">9月</option>
+            <option value="10">10月</option>
+            <option value="11">11月</option>
+            <option value="12">12月</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="placeholder-hint" id="placeholderHint">選好城市、輸入價格後按「查一下」。</p>
+
+      <div class="result" id="resultPanel" hidden>
+        <div class="verdict-row">
+          <span class="verdict-chip" id="verdictChip"></span>
+        </div>
+        <div class="result-sentence" id="resultSentence"></div>
+        <div class="lulu-advice" id="luluAdvice"></div>
+        <div class="gauge">
+          <div class="gauge-track">
+            <span style="background:var(--critical);"></span>
+            <span style="background:var(--serious);"></span>
+            <span style="background:var(--warning);"></span>
+            <span style="background:var(--good);"></span>
+            <div class="gauge-marker" id="gaugeMarker"></div>
+          </div>
+          <div class="gauge-labels">
+            <span>0% ・比較貴</span>
+            <span>50%</span>
+            <span>100% ・比較划算</span>
+          </div>
+        </div>
+        <div id="monthFallbackNote"></div>
+        <div id="lowSampleNote"></div>
+        <div id="festivalNote"></div>
+        <details class="why-box">
+          <summary>為什麼？</summary>
+          <div class="why-content" id="whyContent"></div>
+        </details>
+        <div class="stat-table-wrap">
+          <table class="stat-table" id="statTable"></table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>小提醒</b><br>
+    ・這是 Luluplore 的歷史查票資料，不是即時票價。<br>
+    ・票價會隨日期、航空公司、行李與促銷活動變動。<br>
+    ・資料量較少的航線，參考價值會比較有限。
+
+    <div class="footer-links">
+      <div>📋　想更完整規劃行程？看看<a href="https://luluplore.com/independent-travel-allinone/" target="_blank" rel="noopener">自助旅行完整攻略</a></div>
+      <div>💬　有問題想問我？歡迎加我的<a href="https://lin.ee/iwqbGb8" target="_blank" rel="noopener">LINE官方帳號</a></div>
+    </div>
+
+    <details class="privacy-accordion" id="privacyDetails">
+      <summary>🔒　隱私權政策與資料安全聲明（Privacy Policy）</summary>
+      <div class="privacy-content">
+        <p><b>【Luluplore 機票查票雷達｜隱私權與資料使用說明】</b></p>
+        <p>最後更新日期：2026/09/18</p>
+        <p>Luluplore 重視你的隱私。</p>
+        <p>本查票雷達不需要登入，也不需要提供姓名、Email、LINE ID 或其他會員資料即可使用。</p>
+        <p>為了了解大家對機票查詢的需求，並持續改善查票雷達，我們會在你使用查票功能時，匿名記錄部分查詢資訊。</p>
+
+        <h4>一、我們會記錄什麼？</h4>
+        <p>當你使用查票功能時，系統可能會記錄：</p>
+        <p>・出發地<br>・目的地<br>・航空公司類型<br>・你輸入的機票價格<br>・查詢結果的價格百分位（percentile）<br>・查詢時間</p>
+        <p>這些資料主要用於了解使用者常查詢的航線、價格區間及工具使用情況，並改善 Luluplore 的旅行資訊與查票工具。</p>
+
+        <h4>二、我們不會透過查票雷達主動蒐集什麼？</h4>
+        <p>查票雷達不要求你提供：</p>
+        <p>・姓名<br>・Email<br>・電話<br>・LINE ID<br>・會員帳號<br>・信用卡或付款資料</p>
+        <p>查票雷達的使用紀錄也不會主動記錄上述資料。</p>
+
+        <h4>三、資料會提供給誰？</h4>
+        <p>查票雷達的匿名查詢資料會儲存在第三方雲端資料庫服務 Supabase，用於資料儲存及統計分析。</p>
+        <p>網站流量與使用情況可能會透過 Google Analytics（GA4）進行分析，以了解網站訪客來源、瀏覽情況及工具使用情況。</p>
+        <p>除上述用途外，Luluplore 不會將查票雷達的匿名查詢資料出售或提供給第三方作為行銷用途。</p>
+
+        <h4>四、資料使用目的</h4>
+        <p>蒐集的查詢資訊主要用於：</p>
+        <p>・統計熱門查詢航線<br>・了解使用者常見的機票價格區間<br>・分析查票雷達的使用情況<br>・改善查票雷達功能<br>・製作 Luluplore 的旅行資訊與價格分析內容</p>
+        <p>未來若以統計資料製作公開內容，會以整體統計或匿名化方式呈現，不會以查詢資料識別特定使用者。</p>
+
+        <h4>五、資料保存</h4>
+        <p>查票資料會於 Luluplore 使用查票雷達期間保存，主要用於長期統計與工具改善。</p>
+        <p>若未來停止使用相關資料，Luluplore 會依實際情況進行刪除或停止使用。</p>
+
+        <h4>六、你的權利</h4>
+        <p>依適用之個人資料保護相關法規，你得依法行使查詢、閱覽、更正、停止利用或刪除相關個人資料等權利。</p>
+        <p>由於查票雷達目前不建立會員帳號，也不主動蒐集姓名、Email 等身分識別資訊，如需詢問資料使用相關事項，請透過 Luluplore 官網提供的聯絡方式與我們聯繫。</p>
+
+        <h4>七、第三方服務</h4>
+        <p>本工具可能使用以下第三方服務：</p>
+        <p>・Supabase：用於匿名查詢資料的儲存與資料庫服務<br>・Google Analytics（GA4）：用於網站流量與使用情況分析</p>
+        <p>第三方服務可能依其自身的隱私權政策及服務條款處理相關技術資料。</p>
+
+        <h4>八、隱私權政策的更新</h4>
+        <p>Luluplore 可能因服務內容、工具功能或相關法規變更而更新本說明。</p>
+        <p>若有重大變更，將於本頁更新最新版本。</p>
+
+        <div class="privacy-back"><a href="#pageTop" onclick="document.getElementById('privacyDetails').removeAttribute('open')">↑ 返回查票雷達</a></div>
+      </div>
+    </details>
+
+    <p class="privacy-consent-note">使用本工具即表示你已閱讀上述資料使用說明。</p>
+  </footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

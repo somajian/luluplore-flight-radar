@@ -21,8 +21,8 @@
 // README 的 Supabase 設定章節。
 // ============================================================
 
-var SUPABASE_URL = 'https://YOUR-PROJECT-REF.supabase.co';
-var SUPABASE_ANON_KEY = 'YOUR-ANON-PUBLIC-KEY';
+var SUPABASE_URL = 'https://aczxszzursdkrxxzqlzg.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_ePOuTj0Tl-JL90U-n25Fgw_ZM5igRTj';
 
 var supabaseClient = null;
 

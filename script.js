@@ -300,14 +300,17 @@
   // ---------- anonymous query logging (Supabase) ----------
   // Fire-and-forget: never blocks the UI and never throws up to the caller.
   // If supabase-config.js hasn't been filled in yet, or the network call fails,
-  // this silently no-ops -- the comparator must keep working either way.
-  // Only the fields described in the privacy notice are sent: 出發地／目的地／
-  // 航空公司類型／輸入的機票價格／查詢結果的價格百分位。查詢時間由資料庫的
-  // created_at 預設值記錄，不從瀏覽器端送出時間戳記。
-  function logQueryAnonymously(payload){
+  // this silently no-ops -- the comparator must keep working either way, and
+  // no Supabase error is ever surfaced to the user.
+  // Table: flight_radar_events. Only the fields described in the privacy
+  // notice are sent: event_type／origin／destination／airline_type／price／
+  // percentile。created_at 完全由資料庫的預設值產生，前端從不送出時間戳記，
+  // 也不送出任何可以識別使用者身分的欄位（姓名／Email／LINE ID／電話／IP／
+  // 會員 ID 等一律不記錄）。
+  function logPriceCheckEvent(payload){
     if (!window.supabaseClient) return;
     try {
-      window.supabaseClient.from('fare_checks').insert([payload]).then(function(res){
+      window.supabaseClient.from('flight_radar_events').insert([payload]).then(function(res){
         if (res && res.error){
           console.warn('[Luluplore] 查詢紀錄寫入失敗（不影響查票功能）：', res.error.message);
         }
@@ -381,15 +384,6 @@
     var displayPct = v.direction === 'cheap' ? pct : (100 - pct);
     var compareWord = v.direction === 'cheap' ? '更便宜' : '更貴';
 
-    logQueryAnonymously({
-      origin: currentOrigin === 'all' ? null : currentOrigin,
-      destination: destName,
-      category: currentCategory,
-      month: currentMonth === 'all' ? null : currentMonth,
-      input_price: priceVal,
-      percentile: pct
-    });
-
     panel.hidden = false;
 
     var chip = document.getElementById('verdictChip');
@@ -458,5 +452,17 @@
       '<td>' + fmtTWD(Math.round(p75)) + '</td>' +
       '<td>' + fmtTWD(max) + '</td>' +
       '<td style="font-weight:700;color:var(' + v.varName + ')">' + fmtTWD(priceVal) + '</td></tr>';
+
+    // Result is fully rendered above -- only now do we fire the anonymous
+    // logging call, so a slow/failed Supabase write can never delay or
+    // block the query result the user is looking at.
+    logPriceCheckEvent({
+      event_type: 'price_check',
+      origin: currentOrigin === 'all' ? null : currentOrigin,
+      destination: destName,
+      airline_type: currentCategory,
+      price: priceVal,
+      percentile: pct
+    });
   });
 })();

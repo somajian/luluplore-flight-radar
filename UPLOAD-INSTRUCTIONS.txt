@@ -1,0 +1,3 @@
+更新 GitHub：以 index.html 取代原首頁，新增 manifest.webmanifest 與整個 icons 資料夾
+其他 JS、CSS、README 與提供的原檔完全相同，不需要重新上傳
+等待網站部署完成，再用 Safari 或 Android Chrome 加入主畫面測試
